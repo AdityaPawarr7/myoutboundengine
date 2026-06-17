@@ -1,7 +1,12 @@
 export default function Home() {
-  const phases = [
-    { n: 1, name: "Project scaffold + Vercel deploy", status: "active" },
-    { n: 2, name: "Product context engine", status: "pending" },
+  const phases: {
+    n: number;
+    name: string;
+    status: "done" | "active" | "pending";
+    href?: string;
+  }[] = [
+    { n: 1, name: "Project scaffold + Vercel deploy", status: "done" },
+    { n: 2, name: "Product context engine", status: "active", href: "/knowledge" },
     { n: 3, name: "Prospect ingestion (CSV)", status: "pending" },
     { n: 4, name: "AI sequence writer", status: "pending" },
     { n: 5, name: "Dynamic landing pages", status: "pending" },
@@ -29,52 +34,80 @@ export default function Home() {
       </p>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {phases.map((p) => (
-          <div
-            key={p.n}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "14px 16px",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              opacity: p.status === "pending" ? 0.5 : 1,
-            }}
-          >
-            <span
+        {phases.map((p) => {
+          const inner = (
+            <div
               style={{
-                width: 24,
-                height: 24,
-                borderRadius: "50%",
-                background:
-                  p.status === "active" ? "var(--accent)" : "var(--surface-2)",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                fontSize: 13,
-                fontWeight: 600,
-                flexShrink: 0,
+                gap: 12,
+                padding: "14px 16px",
+                background: "var(--surface)",
+                border:
+                  p.status === "active"
+                    ? "1px solid var(--accent)"
+                    : "1px solid var(--border)",
+                borderRadius: "var(--radius)",
+                opacity: p.status === "pending" ? 0.5 : 1,
+                cursor: p.href ? "pointer" : "default",
               }}
             >
-              {p.n}
-            </span>
-            <span style={{ fontSize: 15 }}>{p.name}</span>
-            {p.status === "active" && (
               <span
                 style={{
-                  marginLeft: "auto",
-                  fontSize: 12,
-                  color: "var(--accent)",
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  background:
+                    p.status === "done"
+                      ? "var(--success)"
+                      : p.status === "active"
+                      ? "var(--accent)"
+                      : "var(--surface-2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 13,
                   fontWeight: 600,
+                  flexShrink: 0,
                 }}
               >
-                IN PROGRESS
+                {p.status === "done" ? "✓" : p.n}
               </span>
-            )}
-          </div>
-        ))}
+              <span style={{ fontSize: 15 }}>{p.name}</span>
+              {p.status === "active" && (
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    fontSize: 12,
+                    color: "var(--accent)",
+                    fontWeight: 600,
+                  }}
+                >
+                  OPEN →
+                </span>
+              )}
+              {p.status === "done" && (
+                <span
+                  style={{
+                    marginLeft: "auto",
+                    fontSize: 12,
+                    color: "var(--success)",
+                    fontWeight: 600,
+                  }}
+                >
+                  DONE
+                </span>
+              )}
+            </div>
+          );
+          return p.href ? (
+            <a key={p.n} href={p.href}>
+              {inner}
+            </a>
+          ) : (
+            <div key={p.n}>{inner}</div>
+          );
+        })}
       </div>
     </main>
   );
