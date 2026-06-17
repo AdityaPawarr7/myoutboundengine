@@ -1,0 +1,88 @@
+// Prisma schema for Outbound Engine
+// Datasource uses Supabase Postgres via DATABASE_URL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// The user's product / service knowledge base (Phase 2)
+model ProductContext {
+  id            String   @id @default(cuid())
+  name          String
+  rawInput      String   @db.Text
+  icp           String?  @db.Text
+  valueProps    String?  @db.Text
+  objections    String?  @db.Text
+  differentiators String? @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  campaigns     Campaign[]
+}
+
+// A batch of prospects + their generated sequences (Phase 3+)
+model Campaign {
+  id               String         @id @default(cuid())
+  name             String
+  productContextId String
+  productContext   ProductContext @relation(fields: [productContextId], references: [id], onDelete: Cascade)
+  status           CampaignStatus @default(DRAFT)
+  budgetPerOpp     Float?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  prospects        Prospect[]
+}
+
+enum CampaignStatus {
+  DRAFT
+  GENERATING
+  READY
+  EXPORTED
+}
+
+// A single prospect from CSV (Phase 3)
+model Prospect {
+  id         String     @id @default(cuid())
+  campaignId String
+  campaign   Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  email      String
+  firstName  String?
+  lastName   String?
+  title      String?
+  company    String?
+  industry   String?
+  enrichment String?    @db.Text
+  createdAt  DateTime   @default(now())
+  steps      EmailStep[]
+  landingToken String?  @unique
+}
+
+// One step in a prospect's sequence, with A/B variants (Phase 4 + 6)
+model EmailStep {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  stepNumber Int
+  dayOffset  Int      @default(0)
+  variants   Variant[]
+}
+
+// An A/B variant of subject + body + CTA (Phase 6)
+model Variant {
+  id          String   @id @default(cuid())
+  emailStepId String
+  emailStep   EmailStep @relation(fields: [emailStepId], references: [id], onDelete: Cascade)
+  label       String
+  subject     String
+  body        String   @db.Text
+  cta         String?
+  bodyLength  String?
+  opens       Int      @default(0)
+  replies     Int      @default(0)
+  positive    Int      @default(0)
+}
